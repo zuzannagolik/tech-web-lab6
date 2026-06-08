@@ -1,60 +1,117 @@
-import './style.css'
-import javascriptLogo from './assets/javascript.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import { setupCounter } from './counter.js'
+// System Date: 2026-06-08 | Active Systems: Online | Blind Level: Default
+const SUPABASE_URL = 'https://cvhobyqvamlunzluzdei.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG9ieXF2YW1sdW56bHV6ZGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MDUyOTQsImV4cCI6MjA5NjI4MTI5NH0.5xtECHd--L3Uzy9P6ZJ7WHERU3LhdcF11DOsGAFd9Sc';
 
-document.querySelector('#app').innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+};
 
-<div class="ticks"></div>
+async function fetchArticles(orderQuery = 'created_at.desc') {
+    const container = document.getElementById('articlesContainer');
+    
+    try {
+        const [column, direction] = orderQuery.split('.');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/article?select=*&order=${column}.${direction}`, {
+            method: 'GET',
+            headers: headers
+        });
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-          <img class="button-icon" src="${javascriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+        if (!response.ok) throw new Error('Błąd pobierania');
+        
+        const articles = await response.json();
+        container.innerHTML = '';
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+        if (articles.length === 0) {
+            container.innerHTML = '<p class="text-center text-slate-500">Brak artykułów w bazie.</p>';
+            return;
+        }
 
-setupCounter(document.querySelector('#counter'))
+        articles.forEach(article => {
+            const formattedDate = dayjs(article.created_at).format('DD-MM-YYYY');
+            
+            // NOWE: Generowanie kolorowych tagów (jeśli istnieją)
+            let tagsHtml = '';
+            if (article.tags && article.tags.length > 0) {
+                tagsHtml = article.tags.map(tag => 
+                    `<span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-2 mb-2">#${tag}</span>`
+                ).join('');
+            }
+
+            // NOWE: Znaczek publikacji
+            const publishBadge = article.is_published 
+                ? `<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">Opublikowany</span>`
+                : `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded">Szkic</span>`;
+
+            const articleCard = document.createElement('article');
+            articleCard.className = 'bg-white p-6 rounded-xl shadow-sm border border-slate-200';
+            
+            articleCard.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">${article.title}</h2>
+                        <h3 class="text-lg text-slate-600 font-medium">${article.subtitle}</h3>
+                    </div>
+                    <div>${publishBadge}</div>
+                </div>
+                <div class="mb-4">${tagsHtml}</div>
+                <div class="text-slate-700 leading-relaxed mb-6">
+                    ${article.content}
+                </div>
+                <div class="flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
+                    <span class="font-medium text-blue-600">Autor: ${article.author}</span>
+                    <span>Utworzono: ${formattedDate}</span>
+                </div>
+            `;
+            container.appendChild(articleCard);
+        });
+
+    } catch (error) {
+        console.error('Błąd:', error);
+        container.innerHTML = '<p class="text-center text-red-500">Błąd połączenia z Supabase.</p>';
+    }
+}
+
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+    fetchArticles(e.target.value);
+});
+
+document.getElementById('addArticleForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // NOWE: Zamiana tekstu wpisanego w pole tagów na tablicę (rozdzielanie po przecinku)
+    const rawTags = document.getElementById('tags').value;
+    const tagsArray = rawTags ? rawTags.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [];
+
+    const newArticle = {
+        title: document.getElementById('title').value,
+        subtitle: document.getElementById('subtitle').value,
+        author: document.getElementById('author').value,
+        content: document.getElementById('content').value,
+        created_at: document.getElementById('createdAt').value,
+        is_published: document.getElementById('isPublished').checked, // Pobiera TRUE/FALSE
+        tags: tagsArray // Wysyła tablicę do Supabase
+    };
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/article`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(newArticle)
+        });
+
+        if (!response.ok) throw new Error('Błąd zapisu');
+
+        document.getElementById('addArticleForm').reset();
+        fetchArticles(document.getElementById('sortSelect').value);
+        alert('Artykuł dodany z nowymi polami!');
+
+    } catch (error) {
+        console.error('Błąd:', error);
+        alert('Błąd dodawania. Sprawdź czy zaktualizowałaś kolumny w Supabase.');
+    }
+});
+
+fetchArticles('created_at.desc');
