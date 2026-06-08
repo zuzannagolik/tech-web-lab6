@@ -1,4 +1,3 @@
-// System Date: 2026-06-08 | Active Systems: Online | Blind Level: Default
 const SUPABASE_URL = 'https://cvhobyqvamlunzluzdei.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG9ieXF2YW1sdW56bHV6ZGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MDUyOTQsImV4cCI6MjA5NjI4MTI5NH0.5xtECHd--L3Uzy9P6ZJ7WHERU3LhdcF11DOsGAFd9Sc';
 
