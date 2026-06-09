@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 const SUPABASE_URL = 'https://cvhobyqvamlunzluzdei.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG9ieXF2YW1sdW56bHV6ZGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MDUyOTQsImV4cCI6MjA5NjI4MTI5NH0.5xtECHd--L3Uzy9P6ZJ7WHERU3LhdcF11DOsGAFd9Sc';
 
-
 const API_URL = `${SUPABASE_URL}article`;
 
 async function fetchArticles(){
@@ -75,7 +74,7 @@ document.getElementById("add-article").addEventListener("submit", async (e) => {
             method: 'POST',
             headers: {
                 'apiKey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`, // Dodany autoryzator również tutaj
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
                 'Content-Type': 'application/json',
                 'Prefer': 'return=minimal'
             },
